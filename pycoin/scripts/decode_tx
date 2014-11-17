@@ -1,0 +1,21 @@
+#!/usr/bin/python
+
+from pycoin.tx.script.tools import *
+from pycoin.tx.script.opcodes import *
+from pycoin.tx import *
+from pycoin.serialize import h2b
+import sys
+
+tx = Tx.tx_from_hex(sys.argv[1])
+print("\nInputs:")
+for i in tx.txs_in:
+    print("    %s" %(str(i)))
+    opcodes = opcode_list(i.script)
+    if opcodes[0] == "OP_0":
+        redeem_hex = opcodes[-1]
+        redeem = disassemble(h2b(redeem_hex))
+        print("        redeem: %s" %(redeem))
+print("\nOutputs:")
+for o in tx.txs_out:
+    print("    %s" %(str(o)))
+#print disassemble(h2b(sys.argv[1]))

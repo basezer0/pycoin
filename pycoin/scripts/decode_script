@@ -1,0 +1,7 @@
+#!/usr/bin/python
+
+from pycoin.tx.script.tools import disassemble
+from pycoin.serialize import h2b
+import sys
+
+print disassemble(h2b(sys.argv[1]))
