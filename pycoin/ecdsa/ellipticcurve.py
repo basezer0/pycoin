@@ -34,6 +34,9 @@
 
 from . import numbertheory
 
+class NoSuchPointError(ValueError): pass
+
+
 class CurveFp( object ):
   """Elliptic Curve over the field of integers modulo a prime."""
   def __init__( self, p, a, b ):
@@ -55,10 +58,15 @@ class CurveFp( object ):
     """Is the point (x,y) on this curve?"""
     return ( y * y - ( x * x * x + self.__a * x + self.__b ) ) % self.__p == 0
 
+  def __repr__(self):
+    return '{}({!r},{!r},{!r})'.format(self.__class__.__name__, self.__p, self.__a, self.__b)
+
+  def __str__(self):
+    return 'y^2 = x^3 + {}*x + {} (mod {})'.format(self.__a, self.__b, self.__p)
 
 
 class Point( object ):
-  """A point on an elliptic curve. Altering x and y is forbidding,
+  """A point on an elliptic curve. Altering x and y is forbidden,
      but they can be read by the x() and y() methods."""
   def __init__( self, curve, x, y, order = None ):
     """curve, x, y, order; order (optional) is the order of this point."""
@@ -67,7 +75,8 @@ class Point( object ):
     self.__y = y
     self.__order = order
     # self.curve is allowed to be None only for INFINITY:
-    if self.__curve: assert self.__curve.contains_point( x, y )
+    if self.__curve and not self.__curve.contains_point( x, y ):
+      raise NoSuchPointError('({},{}) is not on the curve {}'.format(x, y, curve))
     if order: assert self * order == INFINITY
  
   def __eq__( self, other ):
@@ -138,6 +147,9 @@ class Point( object ):
     """Multiply a point by an integer."""
     
     return self * other
+
+  def __repr__( self ):
+    return "{}({!r},{!r},{!r},{!r})".format(self.__class__.__name__, self.__curve, self.__x, self.__y, self.__order)
 
   def __str__( self ):
     if self == INFINITY: return "infinity"

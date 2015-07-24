@@ -4,12 +4,15 @@
 import decimal
 import json
 import logging
-
+import io
 
 try:
-    from urllib2 import urlopen
+    from urllib2 import HTTPError, urlopen
+    from urllib import urlencode
 except ImportError:
     from urllib.request import urlopen
+    from urllib.error import HTTPError
+    from urllib.parse import urlencode
 
 from pycoin.block import BlockHeader
 from pycoin.convention import btc_to_satoshi
@@ -27,7 +30,6 @@ class InsightService(object):
         self.base_url = base_url
 
     def get_blockchain_tip(self):
-        "https://search.bitaccess.ca/api/status?q=getLastBlockHash"
         URL = "%s/api/status?q=getLastBlockHash" % self.base_url
         d = urlopen(URL).read().decode("utf8")
         r = json.loads(d)
@@ -92,7 +94,6 @@ class InsightService(object):
         return spendables
 
     def send_tx(self, tx):
-        # TODO: make this handle errors better
         s = io.BytesIO()
         tx.stream(s)
         tx_as_hex = b2h(s.getvalue())
@@ -101,9 +102,10 @@ class InsightService(object):
         try:
             d = urlopen(URL, data=data).read()
             return d
-        except HTTPError as ex:
-            logging.exception("problem in send_tx %s", tx.id())
-            raise ex
+        except HTTPError as err:
+            if err.code == 400:
+                raise ValueError(err.readline())
+            raise err
 
 
 def tx_from_json_dict(r):
