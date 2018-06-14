@@ -17,8 +17,9 @@ def set_api(library, api_info):
 
 
 def load_library():
-    if os.getenv("PYCOIN_NATIVE") != "openssl":
-        return None
+# We always want this
+#    if os.getenv("PYCOIN_NATIVE") != "openssl":
+#        return None
 
     system = platform.system()
     if system == 'Windows':
